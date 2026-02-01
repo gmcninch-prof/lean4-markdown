@@ -135,3 +135,79 @@ def renderMarkdown (md : List MarkdownTag) : String :=
 
 class Markdown.Represent (α : Type) where
   toMarkdown : α → List MarkdownTag
+
+/-! ## Helper Functions for Common Patterns -/
+
+/-- Create a simple text cell for tables -/
+def textCell (s : String) : TableCell := { content := [.text s] }
+
+/-- Create a table with a footer paragraph.
+Use this for the common pattern of displaying data in a table with summary text below. -/
+def tableWithFooter
+    (headers : Vector String n)
+    (rows : List (Vector TableCell n))
+    (footerText : String)
+    : List MarkdownTag :=
+  let table := MarkdownItem.table { headers := headers, rows := rows }
+  let footer := MarkdownItem.p [.text footerText]
+  [{ element := table }, { element := footer }]
+
+/-- Create a table with multiple footer text items (joined together).
+Use this when the footer has multiple parts like counts and recommendations. -/
+def tableWithFooterItems
+    (headers : Vector String n)
+    (rows : List (Vector TableCell n))
+    (footerItems : List String)
+    : List MarkdownTag :=
+  let table := MarkdownItem.table { headers := headers, rows := rows }
+  let footer := MarkdownItem.p (footerItems.map TextItem.text)
+  [{ element := table }, { element := footer }]
+
+/-- Render a table if items exist, otherwise show an empty message.
+Use this for lists that may be empty. -/
+def tableOrEmpty [Inhabited α]
+    (items : List α)
+    (emptyMessage : String)
+    (headers : Vector String n)
+    (toRow : α → Vector TableCell n)
+    (footerText : α → String)
+    : List MarkdownTag :=
+  if items.isEmpty then
+    [{ element := MarkdownItem.p [.text emptyMessage] }]
+  else
+    let rows := items.map toRow
+    let table := MarkdownItem.table { headers := headers, rows := rows }
+    let footer := MarkdownItem.p [.text (footerText (items.head!))]
+    [{ element := table }, { element := footer }]
+
+/-- Render a table if items exist, otherwise show an empty message.
+Footer receives the full list for computing summaries. -/
+def tableOrEmptyWithList
+    (items : List α)
+    (emptyMessage : String)
+    (headers : Vector String n)
+    (toRow : α → Vector TableCell n)
+    (mkFooter : List α → String)
+    : List MarkdownTag :=
+  if items.isEmpty then
+    [{ element := MarkdownItem.p [.text emptyMessage] }]
+  else
+    let rows := items.map toRow
+    let table := MarkdownItem.table { headers := headers, rows := rows }
+    let footer := MarkdownItem.p [.text (mkFooter items)]
+    [{ element := table }, { element := footer }]
+
+/-- Create a header with an info list below it.
+Use this for detail views with a title and bullet points. -/
+def headerWithInfo (title : String) (items : List String) : List MarkdownTag :=
+  let header := MarkdownItem.h2 title
+  let info := MarkdownItem.ul (items.map MarkdownItem.li)
+  [{ element := header }, { element := info }]
+
+/-- Create a section with h3 header and content -/
+def section3 (title : String) (content : MarkdownItem) : List MarkdownTag :=
+  [{ element := MarkdownItem.h3 title }, { element := content }]
+
+/-- Create a simple info list (unordered list of strings) -/
+def infoList (items : List String) : MarkdownItem :=
+  MarkdownItem.ul (items.map MarkdownItem.li)
