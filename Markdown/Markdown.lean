@@ -136,9 +136,25 @@ def renderMarkdown (md : List MarkdownTag) : String :=
 class Markdown.Represent (α : Type) where
   toMarkdown : α → List MarkdownTag
 
-/-! ## Helper Functions for Common Patterns -/
+/-! ## Helper Functions for Common Markdown Patterns
 
-/-- Create a simple text cell for tables -/
+These helpers reduce boilerplate when implementing `Markdown.Represent` instances.
+Choose the appropriate helper based on your use case:
+
+**Tables:**
+- `textCell` - Create a simple text cell: `textCell "value"` instead of `{ content := [.text "value"] }`
+- `tableWithFooter` - Table with a single footer string (e.g., "Total: 5 items")
+- `tableWithFooterItems` - Table with multiple footer parts (e.g., counts + recommendation)
+- `tableOrEmpty` - Table that shows an empty message when the list is empty
+
+**Detail views:**
+- `headerWithInfo` - h2 header followed by a bulleted info list
+- `section3` - h3 header followed by any content
+- `infoList` - Simple unordered list from strings
+-/
+
+/-- Create a simple text cell for tables.
+Use this instead of the verbose `{ content := [.text s] }` pattern. -/
 def textCell (s : String) : TableCell := { content := [.text s] }
 
 /-- Create a table with a footer paragraph.
@@ -164,25 +180,9 @@ def tableWithFooterItems
   [{ element := table }, { element := footer }]
 
 /-- Render a table if items exist, otherwise show an empty message.
-Use this for lists that may be empty. -/
-def tableOrEmpty [Inhabited α]
-    (items : List α)
-    (emptyMessage : String)
-    (headers : Vector String n)
-    (toRow : α → Vector TableCell n)
-    (footerText : α → String)
-    : List MarkdownTag :=
-  if items.isEmpty then
-    [{ element := MarkdownItem.p [.text emptyMessage] }]
-  else
-    let rows := items.map toRow
-    let table := MarkdownItem.table { headers := headers, rows := rows }
-    let footer := MarkdownItem.p [.text (footerText (items.head!))]
-    [{ element := table }, { element := footer }]
-
-/-- Render a table if items exist, otherwise show an empty message.
-Footer receives the full list for computing summaries. -/
-def tableOrEmptyWithList
+Use this for lists that may be empty. The footer function receives the full list
+for computing summaries like counts. -/
+def tableOrEmpty
     (items : List α)
     (emptyMessage : String)
     (headers : Vector String n)
