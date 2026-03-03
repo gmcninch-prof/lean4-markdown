@@ -1,1 +1,1 @@
-import PredictableCore.Markdown.Markdown
+import Markdown.Markdown

@@ -1,4 +1,4 @@
-namespace PredictableCore.Markdown
+namespace Markdown
 
 
 inductive TextItem where
