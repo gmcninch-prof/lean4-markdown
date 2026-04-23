@@ -8,6 +8,7 @@ inductive TextItem where
   | strikethrough : String → TextItem
   | code : String → TextItem
   | link : (text : String) → (url : String) → TextItem
+  | seq  : List TextItem → TextItem
 
 structure TableCell where
   content : List TextItem
@@ -39,6 +40,8 @@ structure MarkdownTag where
   element : MarkdownItem
   children : List MarkdownItem := []
 
+mutual
+
 def renderTextItem : TextItem → String
   | .text s => s
   | .bold s => s!"**{s}**"
@@ -46,9 +49,12 @@ def renderTextItem : TextItem → String
   | .strikethrough s => s!"~~{s}~~"
   | .code s => s!"`{s}`"
   | .link text url => s!"[{text}]({url})"
+  | .seq xs => renderTextItems xs
 
 def renderTextItems (items : List TextItem) : String :=
   items.map renderTextItem |> String.join
+
+end
 
 def renderTableCell (cell : TableCell) : String :=
   renderTextItems cell.content
