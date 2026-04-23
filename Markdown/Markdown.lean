@@ -56,9 +56,6 @@ def renderTextItems (items : List TextItem) : String :=
 
 end
 
-instance : Append Markdown.TextItem where
-  append x y := .seq [ x , y ]
-
 def renderTableCell (cell : TableCell) : String :=
   renderTextItems cell.content
 
