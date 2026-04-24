@@ -10,6 +10,14 @@ inductive TextItem where
   | link : (text : String) → (url : String) → TextItem
   | seq  : List TextItem → TextItem
 
+instance : Append TextItem where
+  append x y := 
+    match (x,y) with
+      | (.seq xs, .seq ys) => .seq <| xs ++ ys
+      | (.seq xs, y) => .seq <| xs ++ [y]
+      | (x, .seq ys) => .seq <| x :: ys
+      | (x,y) => .seq [x,y]
+
 structure TableCell where
   content : List TextItem
 
@@ -34,7 +42,6 @@ inductive MarkdownItem where
   | hr : MarkdownItem
   | br : MarkdownItem
   | table : TableItem n → MarkdownItem
-
 
 structure MarkdownTag where
   element : MarkdownItem
